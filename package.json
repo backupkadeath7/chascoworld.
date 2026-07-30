@@ -1,0 +1,18 @@
+{
+  "name": "freenet-world",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Railway-ready social world web app",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "express": "^4.21.1",
+    "multer": "^1.20.1",
+    "ws": "^8.1.0"
+  }
+}

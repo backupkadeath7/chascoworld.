@@ -1,0 +1,902 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>freeNet Social World</title>
+  <style>
+    :root{
+      --bg:#07110e;
+      --panel:#11261d;
+      --panel2:#163625;
+      --text:#f4f8f1;
+      --muted:#9fb4a1;
+      --border:rgba(255,255,255,.16);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color:var(--text);
+      background:radial-gradient(circle at top,#1a3c2b 0%, var(--bg) 75%);
+      min-height:100vh;
+    }
+    button,input,select,textarea{font:inherit}
+    .wrap{max-width:1500px; margin:0 auto; padding:16px}
+    .top{display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:10px}
+    .pill{padding:8px 10px; border-radius:999px; background:rgba(255,255,255,.07); border:1px solid var(--border); font-size:12px}
+    .grid{display:grid; grid-template-columns:1.35fr .95fr; gap:12px}
+    .card{background:linear-gradient(180deg, rgba(20,44,35,.96), rgba(10,24,19,.96)); border:1px solid var(--border); border-radius:20px; box-shadow:0 14px 32px rgba(0,0,0,.24)}
+    .panel{padding:12px}
+    .world-panel{padding:12px}
+    .row{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+    .stack{display:grid; gap:8px}
+    .input{width:100%; border:1px solid rgba(255,255,255,.16); border-radius:12px; background:rgba(7,15,13,.82); color:var(--text); padding:10px 12px}
+    .btn{border:none; border-radius:999px; padding:9px 12px; cursor:pointer; color:white; background:linear-gradient(180deg,#2b6a51,#173b2b)}
+    .btn.secondary{background:linear-gradient(180deg,#394e43,#213529)}
+    .btn.ghost{background:linear-gradient(180deg,#55615f,#35413f)}
+    .btn.icon{padding:10px 12px; font-size:16px}
+    .muted{color:var(--muted); font-size:12px}
+    .small{font-size:12px}
+    .hidden{display:none}
+    .scene{position:relative; height:470px; border-radius:18px; overflow:hidden; border:1px solid rgba(255,255,255,.12); background:linear-gradient(180deg,#7edcff 0%,#bff2ff 50%,#8fdf93 100%); cursor:pointer; margin-bottom:10px}
+    .sky{position:absolute; inset:0; background:radial-gradient(circle at 20% 16%, rgba(255,255,255,.95) 0 2px, transparent 3px), radial-gradient(circle at 74% 12%, rgba(255,255,255,.8) 0 2px, transparent 3px), linear-gradient(180deg, rgba(255,255,255,.22) 0%, transparent 100%)}
+    .sun{position:absolute; top:34px; right:38px; width:88px; height:88px; border-radius:50%; background:radial-gradient(circle,#fff4b8,#ffb95c 60%, transparent 100%)}
+    .ground{position:absolute; inset:auto 0 0 0; height:36%; background:linear-gradient(180deg,#69cf70 0%,#3a8546 100%); border-top:3px solid rgba(255,255,255,.14)}
+    .path{position:absolute; bottom:30%; left:4%; width:60%; height:90px; background:linear-gradient(90deg,#f3f6b8,#b7d96e); transform:rotate(-6deg); border-radius:999px}
+    .tree{position:absolute; bottom:28%; right:8%; width:120px; height:170px}
+    .tree .leaf{position:absolute; left:0; bottom:40px; width:120px; height:105px; border-radius:50%; background:radial-gradient(circle,#4ea84f 0%,#2e6432 100%)}
+    .tree .trunk{position:absolute; left:46px; bottom:0; width:28px; height:105px; background:#56402b; border-radius:14px 14px 4px 4px}
+    .bench{position:absolute; left:12%; bottom:24%; width:110px; height:56px; border-radius:999px; background:linear-gradient(180deg,#a76d3c,#6b3f20)}
+    .sign{position:absolute; right:20%; bottom:28%; width:90px; height:70px; background:#f6e39b; border:2px solid rgba(0,0,0,.18); border-radius:10px; transform:rotate(4deg)}
+    .sign::before{content:""; position:absolute; inset:8px; border:2px dashed rgba(0,0,0,.18); border-radius:8px}
+    .portal{position:absolute; left:50%; bottom:24%; transform:translateX(-50%); width:140px; height:140px; border-radius:50%; border:2px solid rgba(255,255,255,.24); display:grid; place-items:center; color:white; font-weight:800; background:linear-gradient(145deg, rgba(255,255,255,.2), rgba(255,255,255,.06)); backdrop-filter:blur(4px)}
+    .avatar{position:absolute; width:56px; height:86px; transform:translate(-50%, -50%); pointer-events:none; z-index:4}
+    .avatar .head{margin:0 auto; width:38px; height:38px; border-radius:50%; border:2px solid rgba(255,255,255,.56)}
+    .avatar .body{margin:4px auto 0; width:44px; height:54px; border-radius:16px 16px 10px 10px; border:2px solid rgba(255,255,255,.56); background:linear-gradient(160deg,#7bd8ff,#3d78a5)}
+    .avatar .feet{display:flex; justify-content:center; gap:6px; margin-top:4px}
+    .avatar .feet span{display:block; width:10px; height:12px; border-radius:4px; background:#2e3a39}
+    .decor{position:absolute; width:54px; height:54px; transform:translate(-50%, -50%); border-radius:16px; border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.16); display:grid; place-items:center; overflow:hidden}
+    .decor img{width:100%; height:100%; object-fit:cover}
+    .bubble-wrap{position:absolute; left:50%; top:-8px; transform:translate(-50%, -100%); opacity:0; pointer-events:none; transition:opacity .25s ease; z-index:5}
+    .bubble-wrap.show{opacity:1}
+    .bubble{max-width:190px; padding:8px 10px; background:rgba(10,20,16,.9); border:1px solid rgba(255,255,255,.16); border-radius:14px; font-size:12px; text-align:center}
+    .panel-item{border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:10px; background:rgba(255,255,255,.04)}
+    .asset-thumb{width:100%; height:90px; object-fit:cover; border-radius:10px; margin-top:6px}
+    .modal{position:fixed; inset:0; background:rgba(0,0,0,.62); display:none; align-items:center; justify-content:center; padding:20px; z-index:20}
+    .modal.show{display:flex}
+    .modal-box{width:min(780px, 100%); border-radius:20px; padding:16px; background:linear-gradient(180deg,#173124,#0e2018); border:1px solid rgba(255,255,255,.14)}
+    .mini-map{display:grid; gap:8px; grid-template-columns:repeat(3, 1fr)}
+    .mini-map .room{border:1px solid rgba(255,255,255,.12); border-radius:14px; padding:10px; background:rgba(255,255,255,.06); min-height:100px}
+    .camera-view{width:100%; max-width:500px; border-radius:16px; background:#000; overflow:hidden; display:none; margin-top:8px}
+    .camera-view.show{display:block}
+    .camera-view video{width:100%; display:block}
+    @media (max-width:1100px){.grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <h1 style="margin:0">freeNet Social World</h1>
+        <div class="muted">Railway-ready beta build for rooms, profiles, uploads, QR unlocks, and realtime events.</div>
+      </div>
+      <div class="row" id="headerMeta"></div>
+    </div>
+
+    <div id="joinScreen" class="card panel" style="max-width:420px; margin:0 auto 12px">
+      <h3 style="margin-top:0">Join the world</h3>
+      <input class="input" id="nameInput" placeholder="Your name" />
+      <div class="row" style="margin-top:10px">
+        <button class="btn" id="joinBtn">Join world</button>
+        <div class="muted">Open the same link on another device to test realtime play.</div>
+      </div>
+    </div>
+
+    <div id="gameScreen" class="hidden">
+      <div class="grid">
+        <section class="card world-panel">
+          <div class="scene" id="scene">
+            <div class="sky"></div>
+            <div class="sun"></div>
+            <div class="ground"></div>
+            <div class="path"></div>
+            <div class="tree"><div class="leaf"></div><div class="trunk"></div></div>
+            <div class="bench"></div>
+            <div class="sign"></div>
+            <div class="portal" id="portalLabel">Portal</div>
+            <div id="decorLayer"></div>
+            <div id="playerLayer"></div>
+            <div id="bubbleWrap" class="bubble-wrap"><div class="bubble" id="bubbleText"></div></div>
+          </div>
+
+          <div class="row" style="margin-bottom:8px">
+            <button class="btn" data-action="dance">Dance</button>
+            <button class="btn secondary" data-action="emote">Emote</button>
+            <button class="btn secondary" data-action="point">Point</button>
+            <button class="btn secondary" data-action="snowball">Snowball</button>
+            <button class="btn secondary" id="editToggleBtn">Edit My Room</button>
+          </div>
+
+          <div class="row" id="roomButtons"></div>
+
+          <div class="row" style="margin-top:10px">
+            <button class="btn icon" id="minimapBtn" title="Minimap">🗺️</button>
+            <button class="btn icon" id="cameraBtn" title="Camera QR scan">📷</button>
+            <button class="btn icon" id="musicBtn" title="Music controls">🎵</button>
+            <div class="muted" id="statusLine">Connecting…</div>
+          </div>
+        </section>
+
+        <aside class="stack">
+          <section class="card panel">
+            <h3 style="margin:0 0 8px">Missions</h3>
+            <div class="stack" id="missionsList"></div>
+          </section>
+
+          <section class="card panel">
+            <h3 style="margin:0 0 8px">Profile & Social</h3>
+            <div class="row">
+              <input class="input" id="bioInput" placeholder="Write your bio" />
+              <button class="btn" id="saveBioBtn">Save</button>
+            </div>
+            <div class="row" style="margin-top:8px">
+              <input class="input" id="portfolioTitleInput" placeholder="Portfolio title" />
+              <input class="input" id="portfolioNoteInput" placeholder="Short note" />
+              <button class="btn secondary" id="addPortfolioBtn">Add</button>
+            </div>
+            <div class="row" style="margin-top:8px">
+              <input class="input" id="profileFeedInput" placeholder="Post to your profile feed" />
+              <button class="btn secondary" id="postFeedBtn">Post</button>
+            </div>
+          </section>
+
+          <section class="card panel">
+            <h3 style="margin:0 0 8px">Players</h3>
+            <div class="stack" id="playersList"></div>
+          </section>
+
+          <section class="card panel">
+            <h3 style="margin:0 0 8px">Uploads</h3>
+            <div class="row">
+              <select class="input" id="assetKindSelect">
+                <option value="decor">Decor</option>
+                <option value="audio">Audio</option>
+                <option value="storyboard">Storyboard</option>
+              </select>
+              <input class="input" type="file" id="assetFileInput" />
+              <button class="btn secondary" id="uploadBtn">Upload</button>
+            </div>
+            <div class="stack" style="margin-top:8px" id="assetsList"></div>
+          </section>
+
+          <section class="card panel">
+            <h3 style="margin:0 0 8px">Chat & Story</h3>
+            <div class="stack" id="chatFeed"></div>
+            <div class="row" style="margin-top:8px">
+              <input class="input" id="chatInput" placeholder="Say something" />
+              <button class="btn" id="sendChatBtn">Send</button>
+            </div>
+            <div class="row" style="margin-top:8px">
+              <input class="input" id="storyTitleInput" placeholder="Story title" />
+              <input class="input" id="storyTextInput" placeholder="Story script" />
+              <button class="btn secondary" id="addStoryBtn">Add</button>
+            </div>
+            <div class="stack" style="margin-top:8px" id="storyScriptsList"></div>
+          </section>
+
+          <section class="card panel">
+            <h3 style="margin:0 0 8px">QR Unlock</h3>
+            <div class="row">
+              <input class="input" id="qrInput" placeholder="Enter QR code" />
+              <button class="btn secondary" id="qrBtn">Unlock</button>
+            </div>
+            <div class="muted" style="margin-top:8px">Try: sun-001 or moon-002</div>
+          </section>
+
+          <section class="card panel">
+            <h3 style="margin:0 0 8px">World Feed</h3>
+            <div class="stack" id="feedList"></div>
+          </section>
+        </aside>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="profileModal">
+    <div class="modal-box">
+      <div class="row" style="justify-content:space-between; margin-bottom:10px">
+        <strong id="profileTitle">Profile</strong>
+        <button class="btn ghost" id="closeModalBtn">Close</button>
+      </div>
+      <div id="profileBody"></div>
+    </div>
+  </div>
+
+  <div class="modal" id="mapModal">
+    <div class="modal-box">
+      <div class="row" style="justify-content:space-between; margin-bottom:10px">
+        <strong>World map</strong>
+        <button class="btn ghost" id="closeMapBtn">Close</button>
+      </div>
+      <div class="mini-map" id="mapBody"></div>
+    </div>
+  </div>
+
+  <div class="modal" id="musicModal">
+    <div class="modal-box">
+      <div class="row" style="justify-content:space-between; margin-bottom:10px">
+        <strong>Music controls</strong>
+        <button class="btn ghost" id="closeMusicBtn">Close</button>
+      </div>
+      <div class="stack">
+        <label class="muted">Ambient track</label>
+        <select class="input" id="ambientSelect"></select>
+        <div class="row">
+          <button class="btn" id="playAmbBtn">Play ambient</button>
+          <button class="btn secondary" id="pauseAmbBtn">Pause</button>
+        </div>
+        <label class="muted">Personal track</label>
+        <select class="input" id="personalTrackSelect"></select>
+        <div class="row">
+          <button class="btn" id="playPersonalBtn">Play personal</button>
+          <button class="btn secondary" id="pausePersonalBtn">Pause</button>
+        </div>
+        <label class="muted">Volume</label>
+        <input type="range" id="volumeRange" min="0" max="100" value="25" />
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="cameraModal">
+    <div class="modal-box">
+      <div class="row" style="justify-content:space-between; margin-bottom:10px">
+        <strong>Scan QR</strong>
+        <button class="btn ghost" id="closeCameraBtn">Close</button>
+      </div>
+      <div class="camera-view" id="cameraView">
+        <video id="videoElement" autoplay playsinline></video>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <input class="input" id="manualQrInput" placeholder="Or enter QR code manually" />
+        <button class="btn" id="manualQrBtn">Unlock</button>
+      </div>
+      <div class="muted" style="margin-top:8px">If your browser supports camera scanning, the preview will appear here.</div>
+    </div>
+  </div>
+
+  <script>
+    const state = {
+      players: [],
+      rooms: [],
+      decorations: {},
+      assets: [],
+      feed: [],
+      chats: {},
+      storyScripts: [],
+      qrCodes: []
+    };
+
+    let currentPlayerId = localStorage.getItem("freenet-player-id") || "";
+    let currentPlayer = null;
+    let ws = null;
+    let editMode = false;
+    let bubbleTimer = null;
+    let ambientAudio = null;
+    let personalAudio = null;
+    let cameraStream = null;
+    let cameraScanning = false;
+    let cameraDetector = null;
+    let cameraTimer = null;
+
+    const joinScreen = document.getElementById("joinScreen");
+    const gameScreen = document.getElementById("gameScreen");
+    const nameInput = document.getElementById("nameInput");
+    const joinBtn = document.getElementById("joinBtn");
+    const headerMeta = document.getElementById("headerMeta");
+    const scene = document.getElementById("scene");
+    const decorLayer = document.getElementById("decorLayer");
+    const playerLayer = document.getElementById("playerLayer");
+    const bubbleWrap = document.getElementById("bubbleWrap");
+    const bubbleText = document.getElementById("bubbleText");
+    const roomButtons = document.getElementById("roomButtons");
+    const missionsList = document.getElementById("missionsList");
+    const playersList = document.getElementById("playersList");
+    const assetsList = document.getElementById("assetsList");
+    const feedList = document.getElementById("feedList");
+    const chatFeed = document.getElementById("chatFeed");
+    const storyScriptsList = document.getElementById("storyScriptsList");
+    const statusLine = document.getElementById("statusLine");
+    const portalLabel = document.getElementById("portalLabel");
+    const bioInput = document.getElementById("bioInput");
+    const saveBioBtn = document.getElementById("saveBioBtn");
+    const portfolioTitleInput = document.getElementById("portfolioTitleInput");
+    const portfolioNoteInput = document.getElementById("portfolioNoteInput");
+    const addPortfolioBtn = document.getElementById("addPortfolioBtn");
+    const profileFeedInput = document.getElementById("profileFeedInput");
+    const postFeedBtn = document.getElementById("postFeedBtn");
+    const chatInput = document.getElementById("chatInput");
+    const sendChatBtn = document.getElementById("sendChatBtn");
+    const storyTitleInput = document.getElementById("storyTitleInput");
+    const storyTextInput = document.getElementById("storyTextInput");
+    const addStoryBtn = document.getElementById("addStoryBtn");
+    const qrInput = document.getElementById("qrInput");
+    const qrBtn = document.getElementById("qrBtn");
+    const editToggleBtn = document.getElementById("editToggleBtn");
+    const assetKindSelect = document.getElementById("assetKindSelect");
+    const assetFileInput = document.getElementById("assetFileInput");
+    const uploadBtn = document.getElementById("uploadBtn");
+    const profileModal = document.getElementById("profileModal");
+    const profileBody = document.getElementById("profileBody");
+    const profileTitle = document.getElementById("profileTitle");
+    const closeModalBtn = document.getElementById("closeModalBtn");
+    const mapModal = document.getElementById("mapModal");
+    const mapBody = document.getElementById("mapBody");
+    const closeMapBtn = document.getElementById("closeMapBtn");
+    const minimapBtn = document.getElementById("minimapBtn");
+    const musicModal = document.getElementById("musicModal");
+    const closeMusicBtn = document.getElementById("closeMusicBtn");
+    const musicBtn = document.getElementById("musicBtn");
+    const cameraModal = document.getElementById("cameraModal");
+    const closeCameraBtn = document.getElementById("closeCameraBtn");
+    const cameraBtn = document.getElementById("cameraBtn");
+    const videoElement = document.getElementById("videoElement");
+    const cameraView = document.getElementById("cameraView");
+    const manualQrInput = document.getElementById("manualQrInput");
+    const manualQrBtn = document.getElementById("manualQrBtn");
+    const ambientSelect = document.getElementById("ambientSelect");
+    const personalTrackSelect = document.getElementById("personalTrackSelect");
+    const playAmbBtn = document.getElementById("playAmbBtn");
+    const pauseAmbBtn = document.getElementById("pauseAmbBtn");
+    const playPersonalBtn = document.getElementById("playPersonalBtn");
+    const pausePersonalBtn = document.getElementById("pausePersonalBtn");
+    const volumeRange = document.getElementById("volumeRange");
+
+    function connectSocket() {
+      const protocol = location.protocol === "https:" ? "wss" : "ws";
+      ws = new WebSocket(`${protocol}://${location.host}/ws`);
+
+      ws.onopen = () => {
+        statusLine.textContent = "Connected. Join the world to begin.";
+      };
+
+      ws.onmessage = (event) => {
+        const message = JSON.parse(event.data);
+        if (message.type === "state") {
+          Object.assign(state, message.state);
+          render();
+        }
+      };
+
+      ws.onerror = () => {
+        statusLine.textContent = "Socket error. Refresh to reconnect.";
+      };
+    }
+
+    function showBubble(text) {
+      bubbleText.textContent = text;
+      bubbleWrap.classList.add("show");
+      clearTimeout(bubbleTimer);
+      bubbleTimer = setTimeout(() => bubbleWrap.classList.remove("show"), 1800);
+    }
+
+    async function loadState() {
+      const res = await fetch("/api/state");
+      const data = await res.json();
+      Object.assign(state, data.state);
+      render();
+    }
+
+    function currentPlayer() {
+      return state.players.find((p) => p.id === currentPlayerId) || null;
+    }
+
+    function render() {
+      const player = currentPlayer();
+      if (!player) {
+        joinScreen.classList.remove("hidden");
+        gameScreen.classList.add("hidden");
+        return;
+      }
+
+      joinScreen.classList.add("hidden");
+      gameScreen.classList.remove("hidden");
+
+      headerMeta.innerHTML = `
+        <span class="pill">Player: ${player.name}</span>
+        <span class="pill">Points: ${player.points}</span>
+        <span class="pill">Room: ${state.rooms.find((r) => r.id === player.roomId)?.name || player.roomId}</span>
+        <span class="pill">${editMode ? "Edit mode" : "Move mode"}</span>
+      `;
+
+      portalLabel.textContent = state.rooms.find((r) => r.id === player.roomId)?.name || "Portal";
+
+      const roomClass = player.roomId === "myroom" ? "myroom" : player.roomId === "park" ? "park" : "plaza";
+      scene.style.background = roomClass === "myroom"
+        ? "linear-gradient(180deg,#84cfff 0%,#deefff 48%,#87d98c 100%)"
+        : roomClass === "park"
+        ? "linear-gradient(180deg,#b7ecff 0%,#dff7ff 38%,#c9f7a6 100%)"
+        : "linear-gradient(180deg,#7edcff 0%,#bff2ff 50%,#8fdf93 100%)";
+
+      decorLayer.innerHTML = "";
+      (state.decorations[player.roomId] || []).forEach((decor) => {
+        const asset = state.assets.find((a) => a.id === decor.assetId);
+        const el = document.createElement("div");
+        el.className = "decor";
+        el.dataset.decorId = decor.id;
+        el.style.left = `${decor.x}%`;
+        el.style.top = `${decor.y}%`;
+
+        if (asset && asset.url) {
+          const img = document.createElement("img");
+          img.src = asset.url;
+          el.appendChild(img);
+        } else {
+          el.textContent = "✨";
+        }
+
+        if (editMode && player.roomId === "myroom") {
+          el.style.cursor = "grab";
+          el.addEventListener("pointerdown", (evt) => {
+            evt.preventDefault();
+            const rect = scene.getBoundingClientRect();
+            const startX = evt.clientX;
+            const startY = evt.clientY;
+            const startLeft = parseFloat(el.style.left);
+            const startTop = parseFloat(el.style.top);
+
+            const move = (moveEvt) => {
+              const deltaX = ((moveEvt.clientX - startX) / rect.width) * 100;
+              const deltaY = ((moveEvt.clientY - startY) / rect.height) * 100;
+              el.style.left = `${Math.max(8, Math.min(92, startLeft + deltaX))}%`;
+              el.style.top = `${Math.max(14, Math.min(92, startTop + deltaY))}%`;
+            };
+
+            const up = () => {
+              fetch("/api/decoration", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ playerId: player.id, roomId: "myroom", x: parseFloat(el.style.left), y: parseFloat(el.style.top), decorId: decor.id })
+              });
+              window.removeEventListener("pointermove", move);
+              window.removeEventListener("pointerup", up);
+            };
+
+            window.addEventListener("pointermove", move);
+            window.addEventListener("pointerup", up);
+          });
+        }
+
+        decorLayer.appendChild(el);
+      });
+
+      playerLayer.innerHTML = "";
+      state.players.filter((p) => p.roomId === player.roomId).forEach((other) => {
+        const avatar = document.createElement("div");
+        avatar.className = "avatar";
+        avatar.style.left = `${other.x}%`;
+        avatar.style.top = `${other.y}%`;
+        avatar.innerHTML = `
+          <div class="head" style="background:linear-gradient(145deg,#ffd1a7,${other.avatarColor})"></div>
+          <div class="body"></div>
+          <div class="feet"><span></span><span></span></div>
+        `;
+        avatar.addEventListener("click", () => openProfile(other.id));
+        playerLayer.appendChild(avatar);
+      });
+
+      roomButtons.innerHTML = state.rooms.map((room) => `
+        <button class="btn secondary ${player.roomId === room.id ? "active" : ""}" data-room="${room.id}" style="margin-right:6px">${room.name}</button>
+      `).join("");
+
+      missionsList.innerHTML = player.missions.map((m) => `
+        <div class="panel-item">
+          <strong>${m.done ? "✓" : "○"} ${m.title}</strong>
+          <div class="muted">Reward: ${m.reward} pts</div>
+        </div>
+      `).join("");
+
+      playersList.innerHTML = state.players.map((p) => `
+        <div class="panel-item" style="cursor:pointer" data-player="${p.id}">
+          <strong>${p.name}</strong>
+          <div class="muted">${p.roomId} · ${p.points} pts</div>
+        </div>
+      `).join("");
+
+      assetsList.innerHTML = state.assets.map((asset) => `
+        <div class="panel-item">
+          <strong>${asset.name}</strong>
+          <div class="muted">${asset.kind} · ${asset.roomId}</div>
+          ${asset.url ? `<img class="asset-thumb" src="${asset.url}" />` : ""}
+        </div>
+      `).join("");
+
+      chatFeed.innerHTML = (state.chats[player.roomId] || []).slice(-6).map((entry) => `
+        <div class="panel-item">
+          <strong>${entry.author}</strong>
+          <div class="muted">${entry.text}</div>
+        </div>
+      `).join("");
+
+      storyScriptsList.innerHTML = state.storyScripts.slice(0, 8).map((entry) => `
+        <div class="panel-item">
+          <strong>${entry.title}</strong>
+          <div class="muted">${entry.text}</div>
+          <div class="small">by ${entry.author}</div>
+        </div>
+      `).join("");
+
+      feedList.innerHTML = state.feed.slice(0, 12).map((entry) => `
+        <div class="panel-item">${entry.text}</div>
+      `).join("");
+
+      bioInput.value = player.bio || "";
+      populateMusicOptions();
+      statusLine.textContent = `${state.rooms.find((r) => r.id === player.roomId)?.name || player.roomId} · ${editMode ? "Edit mode" : "Move mode"}`;
+    }
+
+    function populateMusicOptions() {
+      const audioAssets = state.assets.filter((a) => a.kind === "audio");
+      const options = audioAssets.map((a) => `<option value="${a.url}">${a.name}</option>`).join("");
+      ambientSelect.innerHTML = `<option value="">None</option>${options}`;
+      personalTrackSelect.innerHTML = `<option value="">None</option>${options}`;
+    }
+
+    function openProfile(playerId) {
+      const player = state.players.find((p) => p.id === playerId);
+      if (!player) return;
+
+      profileTitle.textContent = `${player.name}'s profile`;
+      profileBody.innerHTML = `
+        <div class="panel-item">
+          <strong>${player.name}</strong>
+          <div class="muted">${player.bio}</div>
+        </div>
+        <div class="panel-item" style="margin-top:8px">
+          <strong>Portfolio</strong>
+          ${player.portfolio.map((entry) => `<div class="muted">${entry.title}: ${entry.note}</div>`).join("")}
+        </div>
+        <div class="panel-item" style="margin-top:8px">
+          <strong>Profile feed</strong>
+          ${player.profileFeed.map((entry) => `<div class="muted">${entry.text}</div>`).join("")}
+        </div>
+        <div class="row" style="margin-top:10px">
+          <button class="btn" id="friendBtn">Add friend</button>
+          <button class="btn secondary" id="visitBtn">Visit room</button>
+        </div>
+      `;
+
+      profileModal.classList.add("show");
+
+      document.getElementById("friendBtn").addEventListener("click", () => {
+        const me = currentPlayer();
+        if (!me) return;
+        fetch("/api/friend", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ playerId: me.id, targetId: player.id }) });
+      });
+
+      document.getElementById("visitBtn").addEventListener("click", () => {
+        const me = currentPlayer();
+        if (!me) return;
+        fetch("/api/room-change", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ playerId: me.id, roomId: player.roomId }) });
+      });
+    }
+
+    function playAmbient() {
+      const src = ambientSelect.value;
+      if (!src) return;
+      if (!ambientAudio) {
+        ambientAudio = new Audio(src);
+        ambientAudio.loop = true;
+      } else {
+        ambientAudio.src = src;
+      }
+      ambientAudio.volume = Number(volumeRange.value) / 100;
+      ambientAudio.play().catch(() => {});
+    }
+
+    function pauseAmbient() {
+      if (ambientAudio) ambientAudio.pause();
+    }
+
+    function playPersonal() {
+      const src = personalTrackSelect.value;
+      if (!src) return;
+      if (!personalAudio) {
+        personalAudio = new Audio(src);
+        personalAudio.loop = true;
+      } else {
+        personalAudio.src = src;
+      }
+      personalAudio.volume = Number(volumeRange.value) / 100;
+      personalAudio.play().catch(() => {});
+    }
+
+    function pausePersonal() {
+      if (personalAudio) personalAudio.pause();
+    }
+
+    async function unlockQr(code) {
+      const player = currentPlayer();
+      if (!player) return;
+
+      const res = await fetch("/api/qr-unlock", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ playerId: player.id, code })
+      });
+
+      const data = await res.json();
+      if (data.player) {
+        showBubble(`Unlocked ${code}`);
+        await loadState();
+      } else {
+        showBubble("Unknown code");
+      }
+    }
+
+    async function startCameraScan() {
+      if (!("mediaDevices" in navigator) || !("BarcodeDetector" in window)) {
+        showBubble("Camera scanning is not supported in this browser.");
+        return;
+      }
+
+      try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+        videoElement.srcObject = cameraStream;
+        cameraView.classList.add("show");
+        cameraModal.classList.add("show");
+        cameraScanning = true;
+
+        if (!cameraDetector) {
+          cameraDetector = new BarcodeDetector({ formats: ["qr_code"] });
+        }
+
+        const tick = async () => {
+          if (!cameraScanning) return;
+          try {
+            const barcodes = await cameraDetector.detect(videoElement);
+            if (barcodes && barcodes.length) {
+              const code = barcodes[0].rawValue;
+              if (code) {
+                manualQrInput.value = code;
+                cameraScanning = false;
+                stopCamera();
+                await unlockQr(code);
+              }
+            }
+          } catch {}
+          cameraTimer = setTimeout(tick, 800);
+        };
+
+        tick();
+      } catch {
+        showBubble("Camera access was blocked.");
+      }
+    }
+
+    function stopCamera() {
+      if (cameraTimer) clearTimeout(cameraTimer);
+      if (cameraStream) {
+        cameraStream.getTracks().forEach((track) => track.stop());
+        cameraStream = null;
+      }
+      cameraScanning = false;
+      cameraView.classList.remove("show");
+      if (videoElement.srcObject) {
+        videoElement.srcObject = null;
+      }
+    }
+
+    joinBtn.addEventListener("click", () => {
+      const name = nameInput.value.trim();
+      if (!name) return;
+
+      fetch("/api/join", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, playerId: currentPlayerId || "" })
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          currentPlayerId = data.player.id;
+          localStorage.setItem("freenet-player-id", data.player.id);
+          showBubble("Joined the world");
+        });
+    });
+
+    document.querySelectorAll("[data-action]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const player = currentPlayer();
+        if (!player) return;
+
+        const action = btn.getAttribute("data-action");
+        fetch("/api/action", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ playerId: player.id, roomId: player.roomId, action })
+        }).then(() => {
+          showBubble(action === "dance" ? "You dance" : action === "emote" ? "You wave" : action === "point" ? "You point" : "You throw a snowball");
+        });
+      });
+    });
+
+    scene.addEventListener("click", (event) => {
+      const player = currentPlayer();
+      if (!player) return;
+
+      const rect = scene.getBoundingClientRect();
+      const x = ((event.clientX - rect.left) / rect.width) * 100;
+      const y = ((event.clientY - rect.top) / rect.height) * 100;
+
+      if (editMode && player.roomId === "myroom") {
+        const asset = state.assets.find((a) => a.kind !== "audio" && a.kind !== "room-backdrop") || state.assets[0];
+        if (asset) {
+          fetch("/api/decoration", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ playerId: player.id, roomId: "myroom", x, y, assetId: asset.id })
+          }).then(() => showBubble("Decor placed"));
+        }
+      } else {
+        fetch("/api/move", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ playerId: player.id, x, y })
+        }).then(() => showBubble("You moved"));
+      }
+    });
+
+    roomButtons.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-room]");
+      if (!button) return;
+      const player = currentPlayer();
+      if (!player) return;
+
+      fetch("/api/room-change", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ playerId: player.id, roomId: button.getAttribute("data-room") })
+      });
+    });
+
+    editToggleBtn.addEventListener("click", () => {
+      editMode = !editMode;
+      editToggleBtn.textContent = editMode ? "Exit Edit Mode" : "Edit My Room";
+      showBubble(editMode ? "Edit mode on" : "Edit mode off");
+    });
+
+    saveBioBtn.addEventListener("click", () => {
+      const player = currentPlayer();
+      if (!player) return;
+      fetch("/api/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ playerId: player.id, bio: bioInput.value })
+      });
+    });
+
+    addPortfolioBtn.addEventListener("click", () => {
+      const player = currentPlayer();
+      if (!player) return;
+      fetch("/api/portfolio", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ playerId: player.id, title: portfolioTitleInput.value, note: portfolioNoteInput.value })
+      });
+    });
+
+    postFeedBtn.addEventListener("click", () => {
+      const player = currentPlayer();
+      if (!player) return;
+      fetch("/api/profile-feed", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ playerId: player.id, text: profileFeedInput.value })
+      });
+    });
+
+    sendChatBtn.addEventListener("click", () => {
+      const player = currentPlayer();
+      if (!player) return;
+      const text = chatInput.value.trim();
+      if (!text) return;
+      fetch("/api/action", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ playerId: player.id, roomId: player.roomId, action: "chat", text })
+      }).then(() => { chatInput.value = ""; });
+    });
+
+    addStoryBtn.addEventListener("click", () => {
+      const player = currentPlayer();
+      if (!player) return;
+      fetch("/api/storyscript", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ playerId: player.id, title: storyTitleInput.value, text: storyTextInput.value, roomId: player.roomId })
+      });
+    });
+
+    qrBtn.addEventListener("click", () => {
+      unlockQr(qrInput.value);
+    });
+
+    uploadBtn.addEventListener("click", () => {
+      const player = currentPlayer();
+      const file = assetFileInput.files[0];
+      if (!player || !file) return;
+
+      const form = new FormData();
+      form.append("file", file);
+      form.append("kind", assetKindSelect.value);
+      form.append("roomId", player.roomId);
+      form.append("ownerId", player.id);
+
+      fetch("/api/upload", { method: "POST", body: form });
+    });
+
+    playersList.addEventListener("click", (event) => {
+      const item = event.target.closest("[data-player]");
+      if (!item) return;
+      openProfile(item.getAttribute("data-player"));
+    });
+
+    closeModalBtn.addEventListener("click", () => profileModal.classList.remove("show"));
+    profileModal.addEventListener("click", (event) => {
+      if (event.target === profileModal) profileModal.classList.remove("show");
+    });
+
+    minimapBtn.addEventListener("click", () => {
+      mapBody.innerHTML = state.rooms.map((room) => `
+        <div class="room">
+          <strong>${room.name}</strong>
+          <div class="muted">${room.subtitle}</div>
+          <div class="muted" style="margin-top:6px">${state.players.filter((p) => p.roomId === room.id).map((p) => p.name).join(", ") || "No players"}</div>
+        </div>
+      `).join("");
+      mapModal.classList.add("show");
+    });
+
+    closeMapBtn.addEventListener("click", () => mapModal.classList.remove("show"));
+    mapModal.addEventListener("click", (event) => {
+      if (event.target === mapModal) mapModal.classList.remove("show");
+    });
+
+    musicBtn.addEventListener("click", () => musicModal.classList.add("show"));
+    closeMusicBtn.addEventListener("click", () => musicModal.classList.remove("show"));
+    musicModal.addEventListener("click", (event) => {
+      if (event.target === musicModal) musicModal.classList.remove("show");
+    });
+
+    playAmbBtn.addEventListener("click", playAmbient);
+    pauseAmbBtn.addEventListener("click", pauseAmbient);
+    playPersonalBtn.addEventListener("click", playPersonal);
+    pausePersonalBtn.addEventListener("click", pausePersonal);
+
+    volumeRange.addEventListener("input", () => {
+      if (ambientAudio) ambientAudio.volume = Number(volumeRange.value) / 100;
+      if (personalAudio) personalAudio.volume = Number(volumeRange.value) / 100;
+    });
+
+    cameraBtn.addEventListener("click", startCameraScan);
+    closeCameraBtn.addEventListener("click", () => {
+      stopCamera();
+      cameraModal.classList.remove("show");
+    });
+    cameraModal.addEventListener("click", (event) => {
+      if (event.target === cameraModal) {
+        stopCamera();
+        cameraModal.classList.remove("show");
+      }
+    });
+    manualQrBtn.addEventListener("click", () => {
+      unlockQr(manualQrInput.value);
+      stopCamera();
+      cameraModal.classList.remove("show");
+    });
+
+    connectSocket();
+    loadState();
+  </script>
+</body>
+</html>
